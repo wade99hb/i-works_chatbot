@@ -1,0 +1,20 @@
+# 실험/데이터/사용 안 하는 파일 무시
+Data/
+Not Use/
+vectorstore/
+개발일지/
+Embedding/
+
+# 개별파일
+DoubleLLM/Streamlit_playground.py
+DoubleLLM/Try1_0311.ipynb
+DoubleLLM/Try2_0314.ipynb
+DoubleLLM/Try3_0320.ipynb
+DoubleLLM/Try4_0324.ipynb
+DoubleLLM/Try5_0331.ipynb
+DoubleLLM/df.pkl
+
+# 모델, 바이너리 파일 무시
+*.gguf
+*.bin
+*.sqlite3
