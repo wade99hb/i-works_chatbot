@@ -45,7 +45,8 @@ To generate an answer, you have to go through the following reasoning process.
   5. Write a SQL query statement using the WHERE statement with the itemid and table code of the corresponding 'information name'.
     For example, given 'CPU_utilization': '1_10532', the SQL statement should be constructed such that table_code is 1, resulting in FROM history, and itemid is 10532, resulting in WHERE itemid = 10532.
   6. When writing a SQL query statement, if there is no reference to the time in USERs_Question, refer to AND FROM_UNIXTIME(clock) BETWEEN 'Time_now-24hour' AND 'Time_now'
-  7. Without adding any other explanation or rhetoric, only output the completed query statement as an answer as follows(If the selected information is 'CPU_utillization':'1_10532'). 
+  7. If a specific time frame is mentioned in USERs_Question (e.g., 'for the last hour', 'yesterday'), construct the AND FROM_UNIXTIME(clock) BETWEEN ... AND ... clause based on that specific time frame, using 'Time_now' as the reference point if needed.
+  8. Without adding any other explanation or rhetoric, only output the completed query statement as an answer as follows(If the selected information is 'CPU_utillization':'1_10532'). 
     '''
     SELECT itemid, value, FROM_UNIXTIME(clock)
     FROM history 
@@ -69,6 +70,7 @@ FROM history
 WHERE itemid = 87630
 AND FROM_UNIXTIME(clock) BETWEEN '2025-03-19 21:48:00' AND '2025-03-20 21:48:00';
 """
+
 MESSAGE user """
 {'Users_Question': '메모리 총량을 알고 싶어.',
  'Searchable_infomation': {'Zabbix agent ping': '2_40810',
@@ -85,6 +87,7 @@ FROM history_uint
 WHERE itemid = 40847
 AND FROM_UNIXTIME(clock) BETWEEN '2025-03-12 21:53:24' AND '2025-03-13 21:53:24';
 """
+
 MESSAGE user """
 {'Users_Question': '전송된 비트를 알고싶어',
  'Searchable_infomation': {'Zabbix agent ping': '2_40810',
@@ -101,6 +104,19 @@ MESSAGE user """
 """
 MESSAGE assistant "다음과 같은 복수의 정보가 검색되어 우선순위를 판별할 수 없습니다: 'Interface eth0: Bits sent', 'Interface eth1: Bits sent','Interface tun0: Bits sent'"
 
+MESSAGE user """
+{'Users_Question': '3월 10일 3시 디스크 속도',
+ 'Searchable_infomation': {'Disk read speed': '2_11223',
+  'Disk utilization': '1_11224',
+  'Disk write speed': '2_11225'},
+ 'Time_now': '2025-04-20 12:00:00'}
+"""
+MESSAGE assistant """
+SELECT itemid, value, FROM_UNIXTIME(clock)
+FROM history_uint
+WHERE itemid = 11225
+AND FROM_UNIXTIME(clock) BETWEEN '2025-03-10 03:00:00' AND '2025-03-10 03:59:59';
+"""
 MESSAGE user """
 {'Users_Question': '3시간 동안의 사용가능한 메모리를 %단위로 알려줘',
  'Searchable_infomation': {'Zabbix agent ping': '2_40331',
@@ -119,6 +135,91 @@ SELECT itemid, value, FROM_UNIXTIME(clock)
 FROM history
 WHERE itemid = 40367
 AND FROM_UNIXTIME(clock) BETWEEN '2025-04-01 07:40:59' AND '2025-04-01 10:40:59';
+"""
+
+MESSAGE user """
+{'Users_Question': '디스크 사용량을 확인하고 싶어.',
+ 'Searchable_infomation': {'Disk read speed': '2_11223',
+  'Disk utilization': '1_11224',
+  'Disk write speed': '2_11225'},
+ 'Time_now': '2025-04-20 12:00:00'}
+"""
+MESSAGE assistant """
+SELECT itemid, value, FROM_UNIXTIME(clock)
+FROM history
+WHERE itemid = 11224
+AND FROM_UNIXTIME(clock) BETWEEN '2025-04-19 12:00:00' AND '2025-04-20 12:00:00';
+"""
+
+MESSAGE user """
+{'Users_Question': '지난 5시간 동안의 네트워크 지연 시간을 보고 싶어.',
+ 'Searchable_infomation': {'Ping round trip time': '1_90001',
+ 'Interface eth0: Inbound packets discarded': '2_42267',
+ 'Available memory': '2_40366',
+ 'Available memory in %': '1_40367',
+ 'Total memory': '2_40368',
+ 'Ping loss rate': '1_90002'},
+ 'Time_now': '2025-03-15 13:20:00'}
+"""
+MESSAGE assistant """
+SELECT itemid, value, FROM_UNIXTIME(clock)
+FROM history
+WHERE itemid = 90001
+AND FROM_UNIXTIME(clock) BETWEEN '2025-03-15 08:20:00' AND '2025-03-15 13:20:00';
+"""
+
+MESSAGE user """
+{'Users_Question': '24년 2월 5일의 디스크 속도를 확인하고 싶어.',
+ 'Searchable_infomation': {'Disk read speed': '2_11223',
+  'Disk utilization': '1_11224',
+  'Disk write speed': '2_11225'},
+ 'Time_now': '2025-04-30 12:00:00'}
+"""
+MESSAGE assistant """
+SELECT itemid, value, FROM_UNIXTIME(clock)
+FROM history
+WHERE itemid = 11224
+AND FROM_UNIXTIME(clock) BETWEEN '2024-02-05 00:00:00' AND '2024-02-05 12:59:59';
+"""
+
+MESSAGE user """
+{'Users_Question': '4월 11일의 인터페이스 tun0가 보낸 패킷의 개수를 알고 싶어.',
+ 'Searchable_infomation': {'Interface eth0: Outbound packets': '2_65410',
+  'Interface eth1: Outbound packets': '2_65411',
+  'Interface tun0: Outbound packets': '2_65412'},
+ 'Time_now': '2025-04-22 11:45:00'}
+"""
+MESSAGE assistant """
+SELECT itemid, value, FROM_UNIXTIME(clock)
+FROM history_uint
+WHERE itemid = 65412
+AND FROM_UNIXTIME(clock) BETWEEN '2025-04-11 00:00:00' AND '2025-04-11 12:59:59';
+"""
+
+MESSAGE user """
+{'Users_Question': 'CPU 관련 정보를 보여줘.',
+ 'Searchable_infomation': {'CPU load average': '1_30100',
+  'CPU utilization': '1_30101',
+  'CPU usage total': '1_30102'
+  'Interface eth1: Outbound packets': '2_65411',
+  'Interface tun0: Outbound packets': '2_65412'},
+ 'Time_now': '2025-04-22 10:00:00'}
+"""
+MESSAGE assistant """
+다음과 같은 복수의 정보가 검색되어 우선순위를 판별할 수 없습니다: 'CPU load average', 'CPU utilization', 'CPU usage total'
+"""
+
+MESSAGE user """
+{'Users_Question': 'Zabbix 에이전트 상태를 확인하고 싶어.',
+ 'Searchable_infomation': {'Zabbix agent ping': '2_56789',
+  'Zabbix agent availability': '2_56790'},
+ 'Time_now': '2025-04-22 08:30:00'}
+"""
+MESSAGE assistant """
+SELECT itemid, value, FROM_UNIXTIME(clock)
+FROM history_uint
+WHERE itemid = 56790
+AND FROM_UNIXTIME(clock) BETWEEN '2025-04-21 08:30:00' AND '2025-04-22 08:30:00';
 """
 
 PARAMETER temperature 0
